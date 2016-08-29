@@ -8,9 +8,9 @@ var watch = require('gulp-watch');
 var spritesmith = require('gulp.spritesmith');
 var posthtml = require('gulp-posthtml');
 
-var devMode = process.env.NODE_ENV || 'dev';
+var devMode = process.env.NODE_ENV || 'development'; //development or production
 
-var destFolder = devMode === 'dev' ? 'dev' : 'production';
+var destFolder = devMode;
 
 var packageJson = JSON.parse(fs.readFileSync('./package.json'));
 
@@ -18,14 +18,13 @@ var CDN = packageJson.cdn;
 
 if (!CDN){
 	console.error('SET THE CDN!!!');
-	return;
 }
 
 // STYLES
 gulp.task('sass', function () {
 
 	return gulp.src('src/sass/style.scss')
-		.pipe($.if(devMode !== 'prod', $.sourcemaps.init())) 
+		.pipe($.if(devMode !== 'production', $.sourcemaps.init())) 
 		.pipe($.sass({outputStyle: 'expanded'})) 
 		.on('error', $.notify.onError())
 		.pipe($.autoprefixer({
@@ -33,7 +32,7 @@ gulp.task('sass', function () {
 			cascade: false
 		}))
 		.pipe($.cssImageDimensions())
-		.pipe($.if(devMode !== 'prod', $.sourcemaps.write())) 
+		.pipe($.if(devMode !== 'production', $.sourcemaps.write())) 
 		.pipe(gulp.dest(destFolder + '/assets/css'));  
 });
 
@@ -90,39 +89,56 @@ gulp.task('assets', gulp.parallel('assets-files', 'assets-favicon', 'sprite'));
 // HTML
 gulp.task('html', function(callback){
 
-	function html(folder) {
+	const servers = {
+		development: [
+			'local',
+		],
+		production: [
+			'dnevnik',
+			'mosreg',
+			'staging',
+		],
+	}
 
-		var newDestFolder = destFolder + (folder !== 'local' ? '/' + folder : '');
+	const currentServers = servers[devMode];
+	
+	if (!currentServers){
+		callback();
+		return false;
+	}
+
+	currentServers.map( (server, i) => {
+		html(server, () => {
+			if (i === currentServers.length - 1){
+				callback();
+			}
+		});
+	});
+
+	function html(server, callback) {
+
+		let newDestFolder = destFolder;
+
+		if (server !== 'local'){
+			newDestFolder += '/' + server;
+		}
 
 		return gulp.src([
-			'src/html/index/**/*.html', 
 			'src/html/*.html', 
-			'!src/html/index/**/_*.html',
-			'!src/html/_*.html', 
-			])
-			.pipe($.fileInclude({
-				prefix: '@@',
-				basepath: '@file',
-				context: {
-					'server': folder
-				},
-				indent: true
-			}))
-			.on('error', $.notify.onError())
-			//.pipe($.if(devMode === 'prod', $.htmlmin({collapseWhitespace: true})))
-			.pipe(gulp.dest(newDestFolder));
+		])
+		.pipe($.fileInclude({
+			prefix: '@@',
+			basepath: '@file',
+			context: {
+				'server': server
+			},
+			indent: true
+		}))
+		.on('error', $.notify.onError())
+		.pipe($.if(devMode === 'production', $.htmlmin({collapseWhitespace: true})))
+		.pipe(gulp.dest(newDestFolder))
+		.on('end', callback);
 	}
-	
-	if (devMode == 'dev'){
-		html('local');
-	}else{
-		html('mosreg');
-		html('dnevnik');
-	}
-
-	setTimeout( ()=> { //to let write files
-		callback();
-	},300);
 
 });
 
@@ -237,7 +253,7 @@ gulp.task('clean', function(callback) {
 	return $.del([destFolder]);
 });
 
-gulp.task('build', gulp.series('assets', 'sass', gulp.parallel('html', 'webpack')));
+gulp.task('build', gulp.series('assets', gulp.parallel('sass', 'html', 'webpack')));
 
 
 //PUBLIC TASKS
@@ -245,10 +261,7 @@ gulp.task('build', gulp.series('assets', 'sass', gulp.parallel('html', 'webpack'
 //production
 
 // npm run prod - build whole project to deploy in 'production' folder
-gulp.task('prod', gulp.series('clean', 'build', 'modifyCssUrls', 'vers'));
-
-// npm run test - build whole test project to deploy in 'production' folder
-gulp.task('test', gulp.series('build', 'modifyCssUrls', 'vers'));
+gulp.task('prod-no-js', gulp.series('assets', 'sass', 'html', 'modifyCssUrls', 'vers'));
 
 // npm run prod-html - build only html in 'production' folder
 gulp.task('prod-html', gulp.series('html', 'vers'));

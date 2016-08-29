@@ -3,15 +3,16 @@
 var webpack = require('webpack');
 var path = require('path');
 
+var appSettings = path.join(__dirname, 'src/js/settings/settings-dnevnik.js');
+
 module.exports = {
 	cache: true,
 	entry: {
-		dnevnik: './src/js/dnevnik',
-		mosreg: './src/js/mosreg'
+		dnevnik: ['babel-polyfill', './src/js/index'],
 	},
 	output: {
 		path: __dirname + '/production/assets/js',
-		filename: '[name].js',
+		filename: '[name].min.js',
 		publicPath: __dirname + '/production/assets/js',
 		pathinfo: true
 	},

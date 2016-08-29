@@ -1,6 +1,6 @@
 'use strict';
 
-export default (function App(window, document, $){
+export default (function (window, document, $){
 	console.log('run');
 
 	var maxHeight = 650;

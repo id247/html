@@ -3,17 +3,18 @@
 var webpack = require('webpack');
 var path = require('path');
 
+var appSettings = path.join(__dirname, 'src/js/settings/settings-local.js');
+
 module.exports = {
 	cache: true,
 	entry: {
-		dnevnik: './src/js/dnevnik',
-		mosreg: './src/js/mosreg'
+		local: './src/js',
 	},
 	devtool: '#inline-source-map',
 	output: {
-		path: __dirname + '/production/assets/js',
-		filename: '[name].js',
-		publicPath: __dirname + '/production/assets/js',
+		path: __dirname + '/development/assets/js',
+		filename: '[name].min.js',
+		publicPath: __dirname + '/development/assets/js',
 		pathinfo: true
 	},
 
@@ -21,6 +22,7 @@ module.exports = {
 		modulesDirectories: ['node_modules'],
 		extentions: ['', '.js'],
 		alias: {
+			appSettings: appSettings,
 		}
 	},
 
@@ -28,7 +30,7 @@ module.exports = {
 		noParse: [
 		],
 		loaders: [
-			{	test: /\.js$/, 
+			{   test: /\.js$/, 
 				loader: 'babel',
 				include: [
 					__dirname + '/src/js'
