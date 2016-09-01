@@ -37,14 +37,13 @@
     "gulp.spritesmith": "latest",
     "rev-hash": "^1.0.0",
     "strip-loader": "^0.1.2",
-    "webpack": "^1.13.1",
-    "webpack-config": "^4.0.0"
+    "webpack": "^1.13.1"
   },
   "scripts": {
     "prod": "NODE_ENV=production gulp clean; NODE_ENV=mosreg webpack; NODE_ENV=dnevnik webpack; NODE_ENV=staging webpack; NODE_ENV=production gulp prod-no-js;",
-    "prod-html": "NODE_ENV=production gulp prod-html",
-    "prod-css": "NODE_ENV=production gulp prod-css",
-    "prod-js": "NODE_ENV=mosreg webpack; NODE_ENV=dnevnik webpack; NODE_ENV=staging webpack;"
+    "prod-html": "NODE_ENV=production gulp prod-html;",
+    "prod-css": "NODE_ENV=production gulp prod-css;",
+    "prod-js": "NODE_ENV=mosreg webpack; NODE_ENV=dnevnik webpack; NODE_ENV=staging webpack; NODE_ENV=production gulp prod-html;"
   },
   "author": "",
   "license": "ISC"
